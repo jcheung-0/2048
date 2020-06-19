@@ -9,27 +9,25 @@
 from tkinter import Frame, Label, CENTER
 import constants as c
 import brain
+from pprint import pprint
 
 
 class Display(Frame):
     def __init__(self):
         Frame.__init__(self)
-
         self.grid()
         self.master.title("2048")
         self.master.bind("<Key>", self.keyboardInput)
 
-        self.commands = {c.KEY_UP:brain.moveUp,
-                         c.KEY_DOWN: brain.moveDown,
-                         c.KEY_LEFT: brain.moveLeft,
-                         c.KEY_RIGHT: brain.moveRight}
+        self.commands = {c.KEY_UP:      brain.moveUp,
+                         c.KEY_DOWN:    brain.moveDown,
+                         c.KEY_LEFT:    brain.moveLeft,
+                         c.KEY_RIGHT:   brain.moveRight}
 
         self.createBoard()
-        print(self.boardValues)
-        self.grid = [] # used for the display
+        self.gridCells = [] # used for the display
         self.createGrid()
         self.drawGrid()
-
         self.mainloop()
 
     def createBoard(self):
@@ -40,7 +38,8 @@ class Display(Frame):
                            width=c.BOARD_WIDTH, height=c.BOARD_HEIGHT)
 
         background.grid()
-
+        self.gridCells = []
+        print(self.gridCells, "a\n\n")
         for row in range(c.NUM_CELLS):
             grid_row = []
             for col in range(c.NUM_CELLS):
@@ -56,14 +55,14 @@ class Display(Frame):
                 t.grid()
                 grid_row.append(t)
 
-            self.grid.append(grid_row)
+            self.gridCells.append(grid_row)
 
 
     def drawGrid(self):
         for row in range(c.NUM_CELLS):
             for col in range(c.NUM_CELLS):
                 tileValue = self.boardValues[row][col]
-                self.grid[col][row].configure(text=str(tileValue),
+                self.gridCells[col][row].configure(text=str(tileValue),
                                                      bg=c.TILE_BACKGROUND_COLORS[tileValue],
                                                      fg=c.TILE_TEXT_COLORS[tileValue])
                 self.update_idletasks()
@@ -71,22 +70,17 @@ class Display(Frame):
 
 
     def keyboardInput(self, event):
-        key = repr(event.char)
-        print(type(key))
-        print(type('w'))
-        print( "w" in self.commands)
-        print(key in self.commands)
-        print(key == 'w')
-        if key in self.commands: # does not get past here for some reason
-            print("good key press")
-            self.boardValues, moveMade, _ = self.commands[key](self.boardValues)
+        key = repr(event.keysym)
+        key = key[1] # remove quote marks from key
+        if event.keysym in self.commands:
+            self.boardValues, moveMade = self.commands[key](self.boardValues)
             if moveMade:
                 self.boardValues = brain.addNewValue(self.boardValues)
                 self.createGrid()
                 moveMade = False
 
-
-        print(self.boardValues)
+                # check for win
+                # if win add message, coninue button, stop button
 
 
 

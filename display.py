@@ -38,8 +38,6 @@ class Display(Frame):
                            width=c.BOARD_WIDTH, height=c.BOARD_HEIGHT)
 
         background.grid()
-        self.gridCells = []
-        print(self.gridCells, "a\n\n")
         for row in range(c.NUM_CELLS):
             grid_row = []
             for col in range(c.NUM_CELLS):
@@ -76,12 +74,12 @@ class Display(Frame):
             self.boardValues, moveMade = self.commands[key](self.boardValues)
             if moveMade:
                 self.boardValues = brain.addNewValue(self.boardValues)
-                self.createGrid()
+                self.drawGrid()
                 moveMade = False
 
                 # check for win
                 # if win add message, coninue button, stop button
 
 
-
-gamegrid = Display()
+if __name__ == "__main__":
+    game = Display()

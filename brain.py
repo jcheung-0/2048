@@ -212,12 +212,18 @@ def moveRight(board):
 
 
 def checkWin(board):
-    for row in range(c.NUM_CELLS):
-        for col in range(c.NUM_CELLS):
-            if board[row][col] == 2048:
-                return True
+    for row in board:
+        if 2048 in row:
+            return True
 
     return False
+
+
+def checkLoss(board):
+    for row in board:
+        if 0 in row:
+            return False
+    # check if you can combine anything
 
 
 def printOut(board):

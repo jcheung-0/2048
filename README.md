@@ -1,12 +1,3 @@
 # 2048
 
-skills / areas learned:
-	user interfaces with Tkinter
-	
-	
-Tkinter pros:
-   - relatively simple / easy to learn (This project is my first introduction into gui's)
-   
-cons:
-   - pretty outdated software
-   - looks outdated as well
+I created this project to learn about user interfaces. I chose to use the Tkinter library because it is relatively simple to learn.

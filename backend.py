@@ -1,5 +1,5 @@
 """
-file: brain.py
+file: backend.py
 
 author: Joshua Cheung
 
@@ -8,7 +8,7 @@ brief: handles the computing behind the game
 import random
 import constants as c
 
-# all "2d arrays" are indexed by [row][col]
+# all "2d arrays" are indexed as [row][col]
 
 def addNewValue(board):
     emptyCells = findEmptyCells(board)
@@ -19,9 +19,6 @@ def addNewValue(board):
 
 
 def addValueUpdateScore(board, score):
-    """
-    adds new value to board and updates the score
-    """
     emptyCells = findEmptyCells(board)
     newValue = random.choice(c.NEW_TILES)
     if emptyCells != []:
@@ -56,82 +53,13 @@ def findEmptyCells(board):
 
 
 ###############################################
-##### move up/down/left/right and helpers #####
+####### move in a direction and helpers #######
 ###############################################
-
-
-def shiftUp(board):
-    """
-    returns: board where all non-zero elements have 
-    been shifted as far left as possible
-
-    note: cells are shifted starting with the left-most cells
-    """
-    for row in range(c.NUM_CELLS):
-        for col in range(c.NUM_CELLS):
-            targetRow = row
-
-            while board[targetRow - 1][col] == 0: # searches for column to move the current cell
-                if targetRow == 0:
-                    break
-                else:
-                    targetRow -= 1
-
-            if targetRow != row:
-                board[targetRow][col] = board[row][col]
-                board[row][col] = 0
-    
-    return board        
-
-
-def combineUp(board):
-    for row in range(c.NUM_CELLS - 1):
-        for col in range(c.NUM_CELLS):
-            if board[row][col] == board[row+1][col]:
-                board[row][col] *= 2
-                board[row + 1][col] = 0
-    
-    return board
-
-
-def reverseColumns(board):
-    """
-    returns: a rotated version of the board where the
-    left-most column becomes the right-most column
-
-    note: requires square board
-    """
-    maxRow = c.NUM_CELLS - 1
-    output = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
-    
-    for row in range(c.NUM_CELLS):
-        for col in range(c.NUM_CELLS):
-            output[maxRow - row][col] = board[row][col]
-    
-    board = output
-    return board
-
-
-def transpose(board):
-    """
-    returns: the transpose of the input board
-    ie. all columns and rows are "flipped"
-
-    note: requires square board
-    """
-    output = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
-
-    for row in range(c.NUM_CELLS):
-        for col in range(c.NUM_CELLS):
-            output[col][row] = board[row][col]
-
-    board = output
-    return board
 
 
 def copy(board):
     """
-    returns a copy of board
+    returns: deep copy of board
     """
     output = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
 
@@ -142,90 +70,138 @@ def copy(board):
     return output
 
 
-def moveLeft(board):
+def shiftUp(board):
     """
-    performs upward move
-       - shifts cells up
-       - combine pairs of same number
-       - shift up again to get rid of any new spaces
+    returns: board where all non-zero elements have 
+    been shifted as far up as possible
 
-    returns:[updated board, 
-             bool of if there were any changes to the board]
-
-    note: never do
-    board = moveUp(board)
+    note: cells are shifted starting with the top-most cells
     """
-    orig = copy(board)
-    board = transpose(board)
-    board = moveUp(board)[0]
-    board = transpose(board)
-    moveMade = orig != board
-    return [board, moveMade]
+    outputBoard = copy(board)
+    for row in range(c.NUM_CELLS):
+
+        for col in range(c.NUM_CELLS):
+            targetRow = row
+
+            while outputBoard[targetRow - 1][col] == 0: # searches for column to move the current cell
+                if targetRow == 0:
+                    break
+                else:
+                    targetRow -= 1
+
+            if targetRow != row:
+                outputBoard[targetRow][col] = board[row][col]
+                outputBoard[row][col] = 0
+    
+    return outputBoard
 
 
-def moveRight(board):
+def combineUp(board):
     """
-    performs downward move
-       - shifts cells down
-       - combine pairs of same number
-       - shift down again to get rid of any new spaces
+    Combines vertically adjacent tiles that have the same value.
 
-    returns:[updated board, 
-             bool of if there were any changes to the board]
-
-    note: never do
-    board = moveDown(board)
+    note: a single tile can only go through 1 change (or no changes)
     """
-    orig = copy(board)
-    board = transpose(board)
-    board = reverseColumns(board)
-    board = moveUp(board)[0]
-    board = reverseColumns(board)
-    board = transpose(board)
-    moveMade = orig != board
-    return [board, moveMade]
+    outputBoard = copy(board)
+    for row in range(c.NUM_CELLS - 1):
+        for col in range(c.NUM_CELLS):
+            if outputBoard[row][col] == outputBoard[row+1][col]:
+                outputBoard[row][col] *= 2
+                outputBoard[row + 1][col] = 0
+    
+    return outputBoard
+
+
+def reverseColumns(board):
+    """
+    returns: a rotated version of the board where the
+    left-most column becomes the right-most column
+
+    note: requires square board
+    """
+    maxRow = c.NUM_CELLS - 1
+    outputBoard = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
+    
+    for row in range(c.NUM_CELLS):
+        for col in range(c.NUM_CELLS):
+            outputBoard[maxRow - row][col] = board[row][col]
+    
+    return outputBoard
+
+
+def transpose(board):
+    """
+    returns: the transpose of the input board
+    ie. all columns and rows are "flipped"
+
+    note: requires square board
+    """
+    outputBoard = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
+
+    for row in range(c.NUM_CELLS):
+        for col in range(c.NUM_CELLS):
+            outputBoard[col][row] = board[row][col]
+
+    return outputBoard
 
 
 def moveUp(board):
     """
-    performs leftward move
-       - shifts cells left
-       - combine pairs of same number
-       - shift left again to get rid of any new spaces
+    performs upward move
 
-    returns:[updated board, 
-             bool of if there were any changes to the board]
-
-    note: never do
-    board = moveUp(board)
+    returns: updated board, 
+             bool of if there were any changes to the board
     """
-    orig = copy(board)
-    board = shiftUp(board)
-    board = combineUp(board)
-    board = shiftUp(board)
-    moveMade = orig != board
-    return [board, moveMade]
+    board = board
+    outputBoard = shiftUp(board)
+    outputBoard = combineUp(outputBoard)
+    outputBoard = shiftUp(outputBoard) # gets rid of new spaces from combine
+    moveMade = outputBoard != board
+    return outputBoard, moveMade
 
 
 def moveDown(board):
     """
-    performs rightward move
-       - shifts cells right
-       - combine pairs of same number
-       - shift right again to get rid of any new spaces
+    performs downward move
 
-    returns:[updated board, 
-             bool of if there were any changes to the board]
-
-    note: never do
-    board = moveRight(board)
+    returns: updated board,
+             bool of if there were any changes to the board
     """
-    orig = copy(board)
-    board = reverseColumns(board)
-    board = moveUp(board)[0]
-    board = reverseColumns(board)
-    moveMade = orig != board
-    return [board, moveMade]
+    outputBoard = reverseColumns(board)
+    outputBoard = moveUp(outputBoard)[0]
+    outputBoard = reverseColumns(outputBoard)
+    moveMade = outputBoard != board
+    return outputBoard, moveMade
+
+
+def moveLeft(board):
+    """
+    performs leftward move
+
+    returns: updated board, 
+             bool of if there were any changes to the board
+    """
+    outputBoard = transpose(board)
+    outputBoard = moveUp(outputBoard)[0]
+    outputBoard = transpose(outputBoard)
+    moveMade = outputBoard != board
+    return outputBoard, moveMade
+
+
+def moveRight(board):
+    """
+    performs rightward move
+
+    returns: updated board,
+             bool of if there were any changes to the board]
+    """
+    outputBoard = transpose(board)
+    outputBoard = reverseColumns(outputBoard)
+    outputBoard = moveUp(outputBoard)[0]
+    outputBoard = reverseColumns(outputBoard)
+    outputBoard = transpose(outputBoard)
+    moveMade = outputBoard != board
+    return outputBoard, moveMade
 
 
 ###################################
@@ -236,11 +212,14 @@ def checkWin(board):
     for col in board:
         if 2048 in col:
             return True
-
     return False
 
 
 def checkLoss(board):
+    """
+    returns: False if a move can be made
+             True otherwise
+    """
     for row in range(c.NUM_CELLS):
         for col in range(c.NUM_CELLS):
             # an empty cell means we can make a move
@@ -250,31 +229,32 @@ def checkLoss(board):
             # if any adjacent cell has same value, then we can combine them
             currentValue = board[row][col]
             
-            # Let's first check horizontally
+            # check vertically
             if row == 0:
                 if board[row+1][col] == currentValue:
                     return False
             elif row == c.NUM_CELLS - 1:
                 if board[row-1][col] == currentValue:
                     return False
+
             else:
                 if board[row+1][col] == currentValue:
                     return False
                 elif board[row-1][col] == currentValue:
                     return False
 
-            # Now, let's check vertically
-
+            # check horizontally
             if col == 0:
                 if board[row][col+1] == currentValue:
                     return False
             elif col == c.NUM_CELLS - 1:
                 if board[row][col-1] == currentValue:
                     return False
+
             else:
                 if board[row][col+1] == currentValue:
                     return False
-                elif board[row-1][col-1] == currentValue:
+                elif board[row][col-1] == currentValue:
                     return False
     
     return True
@@ -286,36 +266,3 @@ def sumBoard(board):
         for col in range(c.NUM_CELLS):
             total += board[row][col]
     return total
-
-
-######################################
-###### Functions for Testing #########
-######################################
-def printOut(board):
-    """
-    prints out the board in 2d
-    """
-    x = transpose(board)
-    for col in x:
-        print(col)
-    x = transpose(board) # resets board if passed into transpose by reference
-    return 
-
-
-def initializeBoardWin():
-    board = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
-    board[c.NUM_CELLS - 1][c.NUM_CELLS - 2] = 1024
-    board[c.NUM_CELLS - 1][c.NUM_CELLS - 1] = 1024
-    return board
-
-
-def initializeBoardLoss():
-    numbers = [2**x for x in range(1,16)]
-    numbers.append(0)
-    board = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
-    for row in range(c.NUM_CELLS):
-        for col in range(c.NUM_CELLS):
-            new = random.choice(numbers)
-            board[row][col] = new
-            numbers.remove(new)
-    return board

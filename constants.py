@@ -4,9 +4,10 @@ HEADER_LAYERS = 2
 # units in pixels
 DISPLAY_HEIGHT = 500
 DISPLAY_WIDTH = 400
+HEADER_PAD = 20
+
 BOARD_SIZE = 400
 CELL_PAD = 10
-HEADER_PAD = 20
 HEADER_HEIGHT = DISPLAY_HEIGHT - BOARD_SIZE
 
 TILE_BACKGROUND_COLORS = {0: "#9e948a", 2: "#eee4da", 4: "#ede0c8", 8: "#f2b179",
@@ -51,4 +52,4 @@ KEY_DOWN = "s"
 KEY_RIGHT = "d"
 KEY_RESTART = "r"
 
-NEW_TILES = [2, 2, 2, 2, 2, 2, 2, 2, 2, 4]  # a normal game has nine 2's and one 4
+NEW_TILES = [2] * 9 + [4] # a normal game has nine 2's and one 4

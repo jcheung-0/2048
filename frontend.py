@@ -21,6 +21,7 @@ import backend
 
 class Display(Frame):
     def __init__(self):
+        """initialize and start the game"""
         # initialize tkinter widgets
         Frame.__init__(self)
         self.grid()
@@ -34,133 +35,195 @@ class Display(Frame):
                          c.KEY_RESTART: self.restartGame}
 
         # board states
-        self.hasWon = False
-        self.hasLost = False
+        self.hasWon = False     # does not stop game
+        self.hasLost = False    # stops game if true
         self.boardValues = backend.initializeBoard()        # indexed as [row][column]
-        self.score = backend.sumBoard(self.boardValues)     # the score is the sum of all of the tiles
+        self.score = backend.sumBoard(self.boardValues)
 
         # initialize tkinter display 
-        self.gridCells = []     # indexed as [row][column]
-        self.createGrid()
-        self.drawGrid()
+        self.guiCells = []     # indexed as [row][column]
+        self.createGui()
+        self.updateBoard()
         self.mainloop()
 
-    def createGrid(self):
-        headerBackground = Frame(self, bg=c.HEADER_BACKGROUND_COLOR,
-                                 width=c.DISPLAY_WIDTH, height=c.HEADER_HEIGHT)
-        headerBackground.grid(row=0, padx=c.HEADER_PAD, pady=(c.HEADER_PAD,0))
 
-        boardBackground = Frame(self, bg=c.BOARD_BACKGROUND_COLOR,
-                                width=c.DISPLAY_WIDTH, height=c.BOARD_SIZE)
-        boardBackground.grid(row=1, padx=c.HEADER_PAD, pady=(0,c.HEADER_PAD))
+    def createGui(self):
+        """initializes the gui"""
+        headerBackground = Frame(self,
+                                 bg=c.HEADER_BACKGROUND_COLOR,
+                                 width=c.DISPLAY_WIDTH,
+                                 height=c.HEADER_HEIGHT)
+
+        headerBackground.grid(row=0,
+                              padx=c.HEADER_PAD,
+                              pady=(c.HEADER_PAD,0))
+
+        boardBackground = Frame(self,
+                                bg=c.BOARD_BACKGROUND_COLOR,
+                                width=c.DISPLAY_WIDTH,
+                                height=c.BOARD_SIZE)
+
+        boardBackground.grid(row=1,
+                             padx=c.HEADER_PAD,
+                             pady=(0,c.HEADER_PAD))
+
 
         for row in range(c.NUM_CELLS + c.HEADER_LAYERS):
-            grid_row = []
+            gui_row = []
             for col in range(c.NUM_CELLS):
                     # Start by creating the header. note: the header should span 2 rows
+                    # note: do not make seperate helper functions to create labels / buttons
                     if row == 0:
                         # 2048! Label
                         if col == 0:
-                            cell = Frame(headerBackground, bg=c.EMPTY_CELL_COLOR,
+                            cell = Frame(master=headerBackground,
+                                         bg=c.EMPTY_CELL_COLOR,
                                          width=int(2/3*c.DISPLAY_WIDTH),
-                                         height=(c.HEADER_HEIGHT / c.HEADER_LAYERS))
+                                         height=c.HEADER_HEIGHT / c.HEADER_LAYERS)
 
-                            cell.grid(row=row, column=col, rowspan=2)
+                            cell.grid(row=row,
+                                      rowspan=2,
+                                      column=col)
 
-                            t = Label(master=cell, text="2048!", anchor="w", 
-                                      justify=LEFT, fg=c.HEADER_TEXT_COLOR,
+                            guiText = Label(master=cell,
+                                      text="2048!",
+                                      anchor="w", 
+                                      justify=LEFT,
+                                      fg=c.HEADER_TEXT_COLOR,
                                       bg=c.HEADER_BACKGROUND_COLOR,
-                                      font=c.TITLE_FONT, width=14, height=2)
+                                      font=c.TITLE_FONT,
+                                      width=14,
+                                      height=2)
                         
                         # "SCORE" label
                         elif col == c.NUM_CELLS - 1:
-                            cell = Frame(headerBackground, bg=c.EMPTY_CELL_COLOR,
-                                        width=int(c.DISPLAY_WIDTH),
-                                        height=(c.HEADER_HEIGHT / c.HEADER_LAYERS))
+                            cell = Frame(master=headerBackground,
+                                         bg=c.EMPTY_CELL_COLOR,
+                                         width=int(c.DISPLAY_WIDTH),
+                                         height=c.HEADER_HEIGHT / c.HEADER_LAYERS)
 
-                            cell.grid(row=row, column=col, padx=5, pady=(0,5))
+                            cell.grid(row=row,
+                                      column=col)
                             
-                            scoreText = "SCORE\n" + str(self.score)
-                            t = Label(master=cell, text=scoreText, fg=c.SCORE_TEXT_COLOR,
-                                      bg=c.SCORE_BACKGROUND_COLOR, font=c.SCORE_FONT, 
-                                      width=10, height=2)
+                            guiText = Label(master=cell,
+                                      text="SCORE\n{}".format(self.score),
+                                      fg=c.SCORE_TEXT_COLOR,
+                                      bg=c.SCORE_BACKGROUND_COLOR,
+                                      font=c.SCORE_FONT, 
+                                      width=10,
+                                      height=2)
 
                     elif row == 1:
                         # instructions / win / loss message
                         if col == 0:
-                            cell = Frame(headerBackground, bg=c.EMPTY_CELL_COLOR,
-                                            width=int((2/3)*c.DISPLAY_WIDTH),
-                                            height=(c.HEADER_HEIGHT / c.HEADER_LAYERS))
+                            cell = Frame(master=headerBackground,
+                                         bg=c.EMPTY_CELL_COLOR,
+                                         width=int((2/3)*c.DISPLAY_WIDTH),
+                                         height=(c.HEADER_HEIGHT / c.HEADER_LAYERS))
 
-                            cell.grid(row=row, column=col, columnspan=3)
+                            cell.grid(row=row,
+                                      column=col,
+                                      columnspan=3)
 
-                            t = Label(master=cell, text="Combine the numbers to get the 2048 tile!", 
-                                      fg=c.HEADER_TEXT_COLOR, bg=c.HEADER_BACKGROUND_COLOR, 
-                                      font=c.MESSAGE_FONT, width=39, height=1, anchor="sw")
+                            guiText = Label(master=cell,
+                                      text="Combine the numbers to get the 2048 tile!",
+                                      anchor="sw",
+                                      fg=c.HEADER_TEXT_COLOR,
+                                      bg=c.HEADER_BACKGROUND_COLOR, 
+                                      font=c.MESSAGE_FONT,
+                                      width=39,
+                                      height=1)
 
                         # restart button
                         elif col == c.NUM_CELLS - 1:
-                            cell = Button(headerBackground, text="Restart", command=self.restartGame,
-                                   fg=c.RESTART_TEXT_COLOR, bg=c.RESTART_BACKGROUND_COLOR,
-                                   font=c.RESTART_FONT, width=10, height=2)
+                            cell = Button(master=headerBackground,
+                                          text="Restart",
+                                          command=self.restartGame,
+                                          fg=c.RESTART_TEXT_COLOR,
+                                          bg=c.RESTART_BACKGROUND_COLOR,
+                                          font=c.RESTART_FONT,
+                                          width=10,
+                                          height=2)
 
-                            cell.grid(row=row, column=col)
+                            cell.grid(row=row,
+                                      column=col)
                     
                     # create board
                     else:
-                        cell = Frame(boardBackground, bg=c.EMPTY_CELL_COLOR,
-                                    width=c.BOARD_SIZE / c.NUM_CELLS,
-                                    height=c.BOARD_SIZE / c.NUM_CELLS)
+                        cell = Frame(boardBackground,
+                                     bg=c.EMPTY_CELL_COLOR,
+                                     width=c.BOARD_SIZE / c.NUM_CELLS,
+                                     height=c.BOARD_SIZE / c.NUM_CELLS)
                         
-                        cell.grid(row=row, column=col, padx=c.CELL_PAD, pady=c.CELL_PAD)
+                        cell.grid(row=row,
+                                  column=col,
+                                  padx=c.CELL_PAD,
+                                  pady=c.CELL_PAD)
 
-                        t = Label(master=cell, text="", bg=c.EMPTY_CELL_COLOR,
-                                  font=c.TILE_FONT, width=5, height=3)
+                        guiText = Label(master=cell,
+                                  text="",
+                                  bg=c.EMPTY_CELL_COLOR,
+                                  font=c.TILE_FONT,
+                                  width=5,
+                                  height=3)
 
-                    t.grid()
-                    grid_row.append(t)
+                    guiText.grid()
+                    gui_row.append(guiText)
 
-            self.gridCells.append(grid_row)
+            self.guiCells.append(gui_row)        
 
 
-    def drawGrid(self):
+    def updateBoard(self):
+        """updates the gui to reflect the current values on the board"""
         for row in range(c.HEADER_LAYERS, c.HEADER_LAYERS + c.NUM_CELLS):
-            for col in range(len(self.gridCells[row])):
-                tileValue = self.boardValues[row - c.HEADER_LAYERS][col]
-                self.gridCells[row][col].configure(text=str(tileValue),
-                                                     bg=c.TILE_BACKGROUND_COLORS[tileValue],
-                                                     fg=c.TILE_TEXT_COLORS[tileValue])
+            for colIndex, col in enumerate(self.guiCells[row]):
+                tileValue = self.boardValues[row - c.HEADER_LAYERS][colIndex]
+                col.configure(text=str(tileValue),
+                              bg=c.TILE_BACKGROUND_COLORS[tileValue],
+                              fg=c.TILE_TEXT_COLORS[tileValue])
                 self.update_idletasks()
 
 
     def updateScore(self):
-        self.gridCells[0][c.NUM_CELLS - 1].configure(text="SCORE\n" + str(self.score))
+        """updates the gui to reflect the current score"""
+        self.guiCells[0][-1].configure(text="SCORE\n{}".format(self.score))
         self.update_idletasks()
 
 
     def updateWinLoss(self):
+        """updates the starting message to reflect the current state of the game""" 
+        # update variables
+        self.hasLost = backend.checkLoss(self.boardValues)
+        if not self.hasWon:
+            self.hasWon = backend.checkWin(self.boardValues)
+            
+        # update gui
         if self.hasLost:
-            self.gridCells[1][0].configure(text="Game Over...")
+            self.guiCells[1][0].configure(text="Game Over...")
         elif self.hasWon:
-            self.gridCells[1][0].configure(text="You Win!")
+            self.guiCells[1][0].configure(text="You Win!")
         else:
-            self.gridCells[1][0].configure(text="Combine the numbers to get the 2048 tile!")
+            self.guiCells[1][0].configure(text="Combine the numbers to get the 2048 tile!")
         self.update_idletasks()
 
 
     def restartGame(self):
+        """updates gui and variables to restart the game"""
         self.boardValues = backend.initializeBoard()
+        self.updateBoard()
+
+        self.score = backend.sumBoard(self.boardValues)
+        self.updateScore()
+
         self.hasWon = False
         self.hasLost = False
         self.updateWinLoss()
-        self.score = backend.sumBoard(self.boardValues)
-        self.updateScore()
-        self.drawGrid()
+        
 
 
     def keyboardInput(self, event):
-        key = repr(event.keysym)
-        key = key[1] # remove extra quote marks from key (ie. ""w"" -> "w")
+        """handles keyboard inputs"""
+        key = repr(event.keysym)[1] # pulls key without extra quotation marks
         key = key.lower()
 
         if key in self.commands:
@@ -171,15 +234,9 @@ class Display(Frame):
                 self.boardValues, moveMade = self.commands[key](self.boardValues)
                 if moveMade:
                     self.boardValues, self.score = backend.addValueUpdateScore(self.boardValues, self.score)
-                    self.drawGrid()
+                    self.updateBoard()
                     self.updateScore()
-
-                    self.hasLost = backend.checkLoss(self.boardValues)
-                    if not self.hasWon:
-                        self.hasWon = backend.checkWin(self.boardValues)
                     self.updateWinLoss()
-
-                    moveMade = False
 
 
 if __name__ == "__main__":

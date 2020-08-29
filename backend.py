@@ -11,6 +11,7 @@ import constants as c
 # all "2d arrays" are indexed as [row][col]
 
 def addNewValue(board):
+    """adds a new value to an empty cell on the board"""
     emptyCells = findEmptyCells(board)
     if emptyCells != []:
         row, col = random.choice(emptyCells)
@@ -19,6 +20,10 @@ def addNewValue(board):
 
 
 def addValueUpdateScore(board, score):
+    """
+    adds a new value to an empty cell on the board
+    increases the score by the new value
+    """
     emptyCells = findEmptyCells(board)
     newValue = random.choice(c.NEW_TILES)
     if emptyCells != []:
@@ -28,6 +33,7 @@ def addValueUpdateScore(board, score):
 
 
 def initializeBoard():
+    """creates a new board (square 2d array) with 2 non-zero values"""
     board = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
     for i in range(2): # start game with 2 tiles
         board = addNewValue(board)
@@ -58,9 +64,7 @@ def findEmptyCells(board):
 
 
 def copy(board):
-    """
-    returns: deep copy of board
-    """
+    """ returns a deep copy of board """
     output = [[0 for col in range(c.NUM_CELLS)] for row in range(c.NUM_CELLS)]
 
     for row in range(c.NUM_CELLS):
@@ -132,7 +136,7 @@ def reverseColumns(board):
 def transpose(board):
     """
     returns: the transpose of the input board
-    ie. all columns and rows are "flipped"
+    ie. all columns and rows are "flipped" accross the diagonal
 
     note: requires square board
     """
@@ -152,7 +156,6 @@ def moveUp(board):
     returns: updated board, 
              bool of if there were any changes to the board
     """
-    board = board
     outputBoard = shiftUp(board)
     outputBoard = combineUp(outputBoard)
     outputBoard = shiftUp(outputBoard) # gets rid of new spaces from combine
@@ -193,7 +196,7 @@ def moveRight(board):
     performs rightward move
 
     returns: updated board,
-             bool of if there were any changes to the board]
+             bool of if there were any changes to the board
     """
     outputBoard = transpose(board)
     outputBoard = reverseColumns(outputBoard)
@@ -209,6 +212,7 @@ def moveRight(board):
 ###################################
 
 def checkWin(board):
+    """checks for a 2048 on the board"""
     for col in board:
         if 2048 in col:
             return True
@@ -236,7 +240,6 @@ def checkLoss(board):
             elif row == c.NUM_CELLS - 1:
                 if board[row-1][col] == currentValue:
                     return False
-
             else:
                 if board[row+1][col] == currentValue:
                     return False
@@ -250,19 +253,19 @@ def checkLoss(board):
             elif col == c.NUM_CELLS - 1:
                 if board[row][col-1] == currentValue:
                     return False
-
             else:
                 if board[row][col+1] == currentValue:
                     return False
                 elif board[row][col-1] == currentValue:
                     return False
-    
+
     return True
 
 
 def sumBoard(board):
+    """returns the sum of all of the board's values"""
     total = 0
-    for row in range(c.NUM_CELLS):
-        for col in range(c.NUM_CELLS):
-            total += board[row][col]
+    for row in board:
+        for cell in row:
+            total += cell
     return total
